@@ -18,6 +18,9 @@ import pickle
 import os
 from datetime import datetime, timedelta
 
+# Resolve paths relative to this file so the app works on Streamlit Cloud
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # ── PAGE CONFIG ───────────────────────────────────────────
 st.set_page_config(
     page_title="ParkingIQ — Bengaluru Traffic Intelligence",
@@ -89,11 +92,12 @@ div[data-testid="stSidebar"] { background: #070913; }
 # ── LOAD DATA & ML MODEL ──────────────────────────────────
 @st.cache_data
 def load_data():
-    cdf      = pd.read_csv('data/cluster_stats.csv')
-    stn      = pd.read_csv('data/station_summary.csv')
-    habitual = pd.read_csv('data/habitual_offenders.csv')
-    hourly   = pd.read_csv('data/hourly_by_station.csv')
-    with open('data/summary.json') as f:
+    data_dir = os.path.join(BASE_DIR, 'data')
+    cdf      = pd.read_csv(os.path.join(data_dir, 'cluster_stats.csv'))
+    stn      = pd.read_csv(os.path.join(data_dir, 'station_summary.csv'))
+    habitual = pd.read_csv(os.path.join(data_dir, 'habitual_offenders.csv'))
+    hourly   = pd.read_csv(os.path.join(data_dir, 'hourly_by_station.csv'))
+    with open(os.path.join(data_dir, 'summary.json')) as f:
         summary = json.load(f)
     return cdf, stn, habitual, hourly, summary
 
@@ -101,10 +105,13 @@ def load_data():
 def load_ml_model():
     model = None
     meta = None
-    if os.path.exists('data/predictor_model.pkl') and os.path.exists('data/predictor_metadata.json'):
-        with open('data/predictor_model.pkl', 'rb') as f:
+    data_dir = os.path.join(BASE_DIR, 'data')
+    model_path = os.path.join(data_dir, 'predictor_model.pkl')
+    meta_path  = os.path.join(data_dir, 'predictor_metadata.json')
+    if os.path.exists(model_path) and os.path.exists(meta_path):
+        with open(model_path, 'rb') as f:
             model = pickle.load(f)
-        with open('data/predictor_metadata.json', 'r') as f:
+        with open(meta_path, 'r') as f:
             meta = json.load(f)
     return model, meta
 
